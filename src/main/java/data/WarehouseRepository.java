@@ -22,7 +22,7 @@ import java.util.Set;
 public class WarehouseRepository {
 
 
-    public static List<Warehouse> WAREHOUSE_LIST = new ArrayList<Warehouse>();
+    private static List<Warehouse> WAREHOUSE_LIST = new ArrayList<Warehouse>();
     private static List<Integer> WAREHOUSE_IDS = new ArrayList<Integer>();
 
     /**
@@ -187,5 +187,9 @@ public class WarehouseRepository {
             }
         }
         return items;
+    }
+
+    public static List<Warehouse> getWarehouseList() {
+        return WAREHOUSE_LIST;
     }
 }

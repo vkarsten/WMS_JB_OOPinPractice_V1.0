@@ -22,7 +22,7 @@ public class TheWarehouseManager {
     };
 
     // To refer warehouses and categories
-    private final List<Warehouse> warehouses = WarehouseRepository.WAREHOUSE_LIST;
+    private final List<Warehouse> warehouses = WarehouseRepository.getWarehouseList();
     private final Set<String> categories = WarehouseRepository.getCategories();
 
     // To refer to the items matching the current search
@@ -85,6 +85,8 @@ public class TheWarehouseManager {
 
     /** End the application */
    public void quit() {
+       // Pass session actions to user's bye() method.
+       // Depending on the type of the user, the session actions will either be printed or not
         TheWarehouseApp.SESSION_USER.bye(TheWarehouseApp.SESSION_ACTIONS);
         System.exit(0);
    }
@@ -100,6 +102,7 @@ public class TheWarehouseManager {
    private String seekUserName() {
         System.out.println("Please enter your user name:");
         String userName = this.reader.nextLine();
+        // Session user will be a guest by default
         TheWarehouseApp.SESSION_USER = new Guest(userName);
         return userName;
    }
@@ -112,14 +115,20 @@ public class TheWarehouseManager {
 
     /** log in the current user */
     private void logIn(String userName) {
+        // prompt user for password while they are not a valid employee
         while (!TheWarehouseApp.IS_EMPLOYEE) {
             String password = this.askPassword();
 
+            // if the given password matches with a valid employee user, the session user will be changed to an employee
+            // Also tell the warehouse that the current user is an employee, so they do not have to log in again later on
             if (UserRepository.isEmployeeValid(userName, password)) {
                 System.out.println("You logged in successfully");
                 TheWarehouseApp.SESSION_USER = new Employee(userName, password);
                 TheWarehouseApp.IS_EMPLOYEE = true;
-            } else if (this.confirm("This was not successful. Do you want to try again?")) {
+            }
+            // if the password does not match, the user is given the choice to try again with a new username (and password)
+            // if they do not want to try again, they will continue as a Guest
+            else if (this.confirm("This was not successful. Do you want to try again?")) {
                     userName = this.seekUserName();
                 } else return;
         }
@@ -127,9 +136,14 @@ public class TheWarehouseManager {
 
     /** Print a welcome message with the given user's name */
     private void greetUser() {
+        // ask for username
         String userName = this.seekUserName();
+        // evaluate if user is an Admin. If yes, change session user from Guest to Admin
         if (UserRepository.isUserAdmin(userName)) TheWarehouseApp.SESSION_USER = new Admin(userName, "");
+        // evaluate if user is an Employee. If yes, prompt user to login.
+            // If the login is successful, the session user will be an employee
         else if (UserRepository.isUserEmployee(userName)) logIn(userName);
+        // Finally, greet user (based on the type of the session user, a different greeting will be shown)
         TheWarehouseApp.SESSION_USER.greet();
     }
 
@@ -142,14 +156,18 @@ public class TheWarehouseManager {
     // Methods for menu option: list items by warehouse
     // =====================================================================================
     private void listItemsByWarehouse() {
+        // Create a map to store the warehouse id together with the total items in each warehouse
         Map<Integer, Integer> totalItems = new HashMap<>(warehouses.size());
 
         for (Warehouse warehouse : warehouses) {
+            // Listing all items with corresponding warehouse ids
             System.out.println("\nItems in Warehouse " + warehouse.getId());
             listItems(warehouse.getStock());
+            // put the warehouse id and the total number of items inside in the map
             totalItems.put(warehouse.getId(), warehouse.occupancy());
         }
 
+        // print the map at the end of all listed items
         listTotalItemsPerWarehouse(totalItems);
 
         logSessionAction("Listed " + getTotalListedItems() + " items.");
@@ -183,21 +201,30 @@ public class TheWarehouseManager {
     // Methods for menu option: Search item and place order
     // =====================================================================================
     private void searchItemAndPlaceOrder() {
+        // Get the name of the warehouse item that the user wants to find
         String itemName = askItemToOrder();
 
+        // create lists of items matching the search term, grouped by warehouse
+        // (stored for reuse in class field matchingItemLists)
         this.getMatchingItemLists(itemName);
+        // calculate and print the total availability of the given item
         int totalAmount = this.getAvailableAmount();
-
         System.out.println("Amount available: " + totalAmount);
 
+        // Performing actions based on how many items are in stock
         if (totalAmount == 0) {
             this.printLocation("Not in stock");
         } else {
+            // list the occurrences of the item in the different warehouses
             this.listAllLocations();
+            // if more than one warehouse has the item in stock, then show which warehouse stores the most
             if (this.matchingItemsPerWarehouse.size() > 1) {
                 this.printMaximumAvailability();
             }
-
+            // if the item is in stock, it can also be ordered.
+            // Only employees are allowed to do this, so call the login() method for the session user.
+            // If the user is already authenticated, the method will not do anything.
+            // Afterwards, only if the user is authenticated as an employee, call the method for placing an order
             if (this.confirm("Would you like to order this item?")) {
                 this.logIn(TheWarehouseApp.SESSION_USER.getName());
                 if (TheWarehouseApp.IS_EMPLOYEE) this.askAmountAndConfirmOrder(totalAmount, itemName.toLowerCase());
@@ -341,9 +368,11 @@ public class TheWarehouseManager {
     // Methods for menu option: browse by category
     // =====================================================================================
     private void browseByCategory() {
+        // Map menu numbers to category names for the category menu to be printed
         Map<Integer, String> categoryList = this.getCategoryMenu();
         this.showCategoryMenu(categoryList);
 
+        // Get the category choice from the user, and if it is valid, list the items in this category
         int categoryNumber = this.getCategoryChoice();
         if (categoryNumber > 0 && categoryNumber <= categoryList.size()) {
             String category = categoryList.get(categoryNumber);
