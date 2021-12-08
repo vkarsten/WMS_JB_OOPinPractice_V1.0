@@ -1,6 +1,6 @@
 package data;
 
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,11 +19,6 @@ class GuestTest {
         System.setOut(new PrintStream(outContent));
     }
 
-    @AfterEach
-    public void resetOutput() {
-        System.setOut(originalOut);
-    }
-
     @Test
     void greet() {
         guest.greet();
@@ -40,5 +35,10 @@ class GuestTest {
     @Test
     void authenticate() {
         assertFalse(guest.authenticate("password"));
+    }
+
+    @AfterAll
+    public static void resetOutput() {
+        System.setOut(originalOut);
     }
 }

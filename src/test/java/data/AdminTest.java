@@ -1,6 +1,6 @@
 package data;
 
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,14 +19,14 @@ class AdminTest {
         System.setOut(new PrintStream(outContent));
     }
 
-    @AfterEach
-    public void resetOutput() {
-        System.setOut(originalOut);
-    }
-
     @Test
     void greet() {
         admin.greet();
         assertEquals("Hello, admin!\nWelcome to the Admin Panel.\nWith higher authority comes higher responsibility.\n", outContent.toString());
+    }
+
+    @AfterAll
+    public static void resetOutput() {
+        System.setOut(originalOut);
     }
 }

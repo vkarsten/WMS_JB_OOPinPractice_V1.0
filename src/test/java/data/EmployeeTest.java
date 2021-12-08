@@ -1,6 +1,6 @@
 package data;
 
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,11 +19,6 @@ class EmployeeTest {
     @BeforeEach
     public void setUpStream() {
         System.setOut(new PrintStream(outContent));
-    }
-
-    @AfterEach
-    public void resetOutput() {
-        System.setOut(originalOut);
     }
 
     @Test
@@ -55,5 +50,10 @@ class EmployeeTest {
         actions.add("Done that");
         em.bye(actions);
         assertEquals("\nThank you for your visit, em1!\nIn this session you have: \n1. Done this \n2. Done that \n", outContent.toString());
+    }
+
+    @AfterAll
+    public static void resetOutput() {
+        System.setOut(originalOut);
     }
 }
